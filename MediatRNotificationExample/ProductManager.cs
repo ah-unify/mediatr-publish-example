@@ -1,47 +1,35 @@
-﻿using MediatRNotificationExample.Domain;
+﻿using MediatR;
+using MediatRNotificationExample.Domain;
 using MediatRNotificationExample.Interfaces;
+using MediatRNotificationExample.Notifications;
 
 namespace MediatRNotificationExample;
 
 public class ProductManager
 {
     private readonly IProductRepository _productRepository;
-    private readonly IEmailer _emailer;
-    private readonly IAuditor _auditor;
-    private readonly IEmailAddressResolver _emailAddressResolver;
-    private readonly IExternalProductSyncService _externalProductSyncService;
+    private readonly IMediator _mediator;
 
     public ProductManager(IProductRepository productRepository, 
-        IEmailer emailer,
-        IAuditor auditor,
-        IEmailAddressResolver emailAddressResolver,
-        IExternalProductSyncService externalProductSyncService)
+        IMediator mediator)
     {
         _productRepository = productRepository;
-        _emailer = emailer;
-        _auditor = auditor;
-        _emailAddressResolver = emailAddressResolver;
-        _externalProductSyncService = externalProductSyncService;
+        _mediator = mediator;
     }
     
     /// <summary>
-    /// Adds a product, emails product management, audits the process and begins an external sync
+    /// Adds a product, raises a notification
     /// </summary>
     public async Task AddProduct(string sku, string title)
     {
         var product = new Product(sku, title);
         await _productRepository.Add(product);
 
-        var email = await _emailAddressResolver.GetProductManagementEmailAddress();
-        await _emailer.SendTemplatedEmail(email, "product_added_template");
-
-        await _auditor.Audit(sku, "product_added_audit");
-
-        await _externalProductSyncService.SyncProductBySku(sku);
+        await _mediator.Publish(new ProductAddedNotification(sku));
     }
     
     /// <summary>
-    /// Updates a product and audits
+    /// Updates a product, raises a notification
     /// </summary>
     public async Task UpdateProduct(string sku, string newTitle)
     {
@@ -54,19 +42,16 @@ public class ProductManager
         product.UpdateTitle(newTitle);
         await _productRepository.Update(product);
 
-        await _auditor.Audit(sku, "product_updated_audit");
+        await _mediator.Publish(new ProductUpdatedNotification(sku));
     }
     
     /// <summary>
-    /// Removes a product, emails product management, audits the process
+    /// Removes a product, raises a notification
     /// </summary>
     public async Task RemoveProduct(string sku)
     {
         await _productRepository.Remove(sku);
         
-        var email = await _emailAddressResolver.GetProductManagementEmailAddress();
-        await _emailer.SendTemplatedEmail(email, "product_removed_template");
-
-        await _auditor.Audit(sku, "product_removed_audit");
+        await _mediator.Publish(new ProductRemovedNotification(sku));
     }
 }

@@ -1,6 +1,8 @@
+using MediatR;
 using MediatRNotificationExample;
 using MediatRNotificationExample.Domain;
 using MediatRNotificationExample.Interfaces;
+using MediatRNotificationExample.Notifications;
 using NSubstitute;
 
 namespace Unit.Tests;
@@ -8,84 +10,64 @@ namespace Unit.Tests;
 public class ProductManagerTests
 {
     private IProductRepository _productRepository;
-    private IEmailer _emailer;
-    private IAuditor _auditor;
-    private IEmailAddressResolver _emailAddressResolver;
-    private IExternalProductSyncService _externalProductSyncService;
-    
+    private IMediator _mediator;
+
     private ProductManager _productManager;
 
     [SetUp]
     public void Setup()
     {
         _productRepository = Substitute.For<IProductRepository>();
-        _emailer = Substitute.For<IEmailer>();
-        _auditor = Substitute.For<IAuditor>();
-        _emailAddressResolver = Substitute.For<IEmailAddressResolver>();
-        _externalProductSyncService = Substitute.For<IExternalProductSyncService>();
-        
+        _mediator = Substitute.For<IMediator>();
+
         _productManager = new ProductManager(_productRepository,
-            _emailer, 
-            _auditor, 
-            _emailAddressResolver, 
-            _externalProductSyncService );
+            _mediator);
     }
 
     [Test]
-    public void Should_AddProduct_And_Audit_And_Email_And_StartSync()
+    public void Should_AddProduct_And_RaiseNotification()
     {
         // Given
         const string sku = "12345";
         const string title = "OverpricedGpu";
-        const string email = "jerry.seinfeld@gmail.com";
-        _emailAddressResolver.GetProductManagementEmailAddress().Returns(email);
-        
+
         // When
         _productManager.AddProduct(sku, title);
-        
+
         // Then
-        _productRepository.Received().Add(Arg.Is<Product>(x=> x.Sku == sku && x.Title == title));
-        
-        _auditor.Received().Audit(sku, "product_added_audit");
-        _emailer.Received().SendTemplatedEmail(email, "product_added_template");
-        _externalProductSyncService.Received().SyncProductBySku(sku);
+        _productRepository.Received().Add(Arg.Is<Product>(x => x.Sku == sku && x.Title == title));
+        _mediator.Received().Publish(Arg.Is<ProductAddedNotification>(x => x.Sku == sku));
     }
-    
+
     [Test]
-    public void Should_UpdateProduct_And_Audit()
+    public void Should_UpdateProduct_And_RaiseNotification()
     {
         // Given an existing product
         const string sku = "12345";
         const string title = "OverpricedGpu";
         _productRepository.Get(sku).Returns(new Product(sku, title));
-        
+
         const string newTitle = "RegularlyPricedGpu";
-        
+
         // When
         _productManager.UpdateProduct(sku, newTitle);
-        
+
         // Then
-        _productRepository.Received().Update(Arg.Is<Product>(x=> x.Sku == sku && x.Title == newTitle));
-        
-        _auditor.Received().Audit(sku, "product_updated_audit");
+        _productRepository.Received().Update(Arg.Is<Product>(x => x.Sku == sku && x.Title == newTitle));
+        _mediator.Received().Publish(Arg.Is<ProductUpdatedNotification>(x => x.Sku == sku));
     }
-    
+
     [Test]
-    public void Should_RemoveProduct_And_Audit_And_Email()
+    public void Should_RemoveProduct_And_RaiseNotification()
     {
         // Given
         const string sku = "12345";
-        const string title = "OverpricedGpu";
-        const string email = "jerry.seinfeld@gmail.com";
-        _emailAddressResolver.GetProductManagementEmailAddress().Returns(email);
-        
+
         // When
         _productManager.RemoveProduct(sku);
-        
+
         // Then
         _productRepository.Received().Remove(sku);
-        
-        _auditor.Received().Audit(sku, "product_removed_audit");
-        _emailer.Received().SendTemplatedEmail(email, "product_removed_template");
+        _mediator.Received().Publish(Arg.Is<ProductRemovedNotification>(x => x.Sku == sku));
     }
 }
