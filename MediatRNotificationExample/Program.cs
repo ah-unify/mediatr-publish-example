@@ -15,7 +15,7 @@ using IHost host = Host.CreateDefaultBuilder(args)
             .AddTransient<IEmailer, Emailer>()
             .AddTransient<IEmailAddressResolver, EmailAddressResolver>()
             .AddTransient<IExternalProductSyncService, ExternalProductSyncService>()
-            .AddMediatR(typeof(Program).GetTypeInfo().Assembly)// Registers MediatR
+            // .AddMediatR(typeof(Program).GetTypeInfo().Assembly)// Registers MediatR
         ) 
     .Build();
 
