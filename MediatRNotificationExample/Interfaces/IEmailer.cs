@@ -2,5 +2,5 @@
 
 public interface IEmailer
 {
-    public Task Email(string emailAddress, string template);
+    public Task SendTemplatedEmail(string emailAddress, string template);
 }

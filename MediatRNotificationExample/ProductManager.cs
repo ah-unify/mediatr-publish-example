@@ -33,7 +33,7 @@ public class ProductManager
         await _productRepository.Add(product);
 
         var email = await _emailAddressResolver.GetProductManagementEmailAddress();
-        await _emailer.Email(email, "product_added_template");
+        await _emailer.SendTemplatedEmail(email, "product_added_template");
 
         await _auditor.Audit(sku, "product_added_audit");
 
@@ -65,7 +65,7 @@ public class ProductManager
         await _productRepository.Remove(sku);
         
         var email = await _emailAddressResolver.GetProductManagementEmailAddress();
-        await _emailer.Email(email, "product_removed_template");
+        await _emailer.SendTemplatedEmail(email, "product_removed_template");
 
         await _auditor.Audit(sku, "product_removed_audit");
     }

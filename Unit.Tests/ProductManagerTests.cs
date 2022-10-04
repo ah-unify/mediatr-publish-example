@@ -47,7 +47,7 @@ public class ProductManagerTests
         _productRepository.Received().Add(Arg.Is<Product>(x=> x.Sku == sku && x.Title == title));
         
         _auditor.Received().Audit(sku, "product_added_audit");
-        _emailer.Received().Email(email, "product_added_template");
+        _emailer.Received().SendTemplatedEmail(email, "product_added_template");
         _externalProductSyncService.Received().SyncProductBySku(sku);
     }
     
@@ -86,6 +86,6 @@ public class ProductManagerTests
         _productRepository.Received().Remove(sku);
         
         _auditor.Received().Audit(sku, "product_removed_audit");
-        _emailer.Received().Email(email, "product_removed_template");
+        _emailer.Received().SendTemplatedEmail(email, "product_removed_template");
     }
 }
