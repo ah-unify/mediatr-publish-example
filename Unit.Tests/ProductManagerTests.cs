@@ -75,7 +75,6 @@ public class ProductManagerTests
     {
         // Given
         const string sku = "12345";
-        const string title = "OverpricedGpu";
         const string email = "jerry.seinfeld@gmail.com";
         _emailAddressResolver.GetProductManagementEmailAddress().Returns(email);
         
