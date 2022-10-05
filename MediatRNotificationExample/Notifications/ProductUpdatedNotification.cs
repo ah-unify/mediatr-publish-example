@@ -5,7 +5,7 @@ namespace MediatRNotificationExample.Notifications;
 public class ProductUpdatedNotification : IAuditNotification
 {
     public string Sku { get; }
-    public string AuditTemplate => "product_updated_audit";
+    public string AuditMessage => "product_updated_audit";
 
     public ProductUpdatedNotification(string sku)
     {

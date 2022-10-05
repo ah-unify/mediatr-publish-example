@@ -15,6 +15,6 @@ public class AuditNotificationHandler<T> : INotificationHandler<T> where T : IAu
     
     public async Task Handle(T notification, CancellationToken cancellationToken)
     {
-        await _auditor.Audit(notification.Sku, notification.AuditTemplate);
+        await _auditor.Audit(notification.Sku, notification.AuditMessage);
     }
 }

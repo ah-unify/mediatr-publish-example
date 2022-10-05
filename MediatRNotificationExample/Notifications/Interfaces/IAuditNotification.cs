@@ -2,5 +2,5 @@
 
 public interface IAuditNotification : ISkuNotification
 {
-    public string AuditTemplate { get; }
+    public string AuditMessage { get; }
 }

@@ -28,12 +28,12 @@ public class AuditNotificationHandlerTests
         await _handler.Handle(notification, CancellationToken.None);
 
         // Then
-        await _auditor.Received().Audit(notification.Sku, notification.AuditTemplate);
+        await _auditor.Received().Audit(notification.Sku, notification.AuditMessage);
     }
 }
 
 public class TestAuditNotification : IAuditNotification
 {
     public string Sku => "12345";
-    public string AuditTemplate => "test_audit";
+    public string AuditMessage => "test_audit";
 }
